@@ -1,35 +1,123 @@
 import React from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
 } from 'react-native';
-export default function ExpenseCard({ expense }) {
 
-  return (
-    <View style={styles.card}>
+import Colors from '../theme/colors';
 
-      <Text style={styles.title}>{expense.title}</Text>
+export default function ExpenseCard({
+    expense,
+    onDelete,
+}) {
 
-      <Text>₹ {expense.amount}</Text>
+    return (
 
-      <Text>{expense.category}</Text>
+        <View style={styles.card}>
 
-    </View>
-  );
+            <View style={styles.leftSection}>
+
+                <Text style={styles.title}>
+                    {expense.title}
+                </Text>
+
+                <Text style={styles.category}>
+                    {expense.category}
+                </Text>
+
+            </View>
+
+            <View style={styles.rightSection}>
+
+                <Text style={styles.amount}>
+                    ₹ {expense.amount}
+                </Text>
+
+                <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => onDelete(expense.id)}
+                >
+                    <Text style={styles.deleteText}>
+                        Delete
+                    </Text>
+                </TouchableOpacity>
+
+            </View>
+
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
 
-  card: {
-    backgroundColor: '#f4f4f4',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 10
-  },
+    card: {
+        backgroundColor: '#fff',
 
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold'
-  }
+        padding: 20,
+
+        borderRadius: 22,
+
+        marginBottom: 16,
+
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+
+        borderWidth: 1,
+        borderColor: '#F3F4F6',
+
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        shadowRadius: 6,
+
+        elevation: 3,
+    },
+
+    leftSection: {
+        flex: 1,
+    },
+
+    rightSection: {
+        alignItems: 'flex-end',
+    },
+
+    title: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: Colors.text,
+    },
+
+    category: {
+        marginTop: 5,
+        color: Colors.lightText,
+    },
+
+    amount: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: Colors.danger,
+        marginBottom: 10,
+    },
+
+    deleteButton: {
+        backgroundColor: '#EF4444',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
+    },
+
+    deleteText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
 });

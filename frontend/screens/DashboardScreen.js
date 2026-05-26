@@ -1,91 +1,136 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import {
     View,
     Text,
-    TouchableOpacity,
     StyleSheet,
-    RefreshControl
+    ScrollView,
+    TouchableOpacity,
 } from 'react-native';
 
-import API from '../services/api'; // adjust path if needed
+import { useFocusEffect } from '@react-navigation/native';
+
+import API from '../services/api';
+import Colors from '../theme/colors';
+import PrimaryButton from '../components/PrimaryButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DashboardScreen({ navigation }) {
 
     const [monthlyTotal, setMonthlyTotal] = useState(0);
+    const [userName, setUserName] = useState('');
 
-    useEffect(() => {
-        fetchMonthlyTotal();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+
+            fetchMonthlyTotal();
+            fetchUserName();
+
+        }, [])
+    );
+    const fetchUserName = async () => {
+
+        try {
+
+            const name = await AsyncStorage.getItem('userName');
+
+            if (name) {
+                setUserName(name);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const fetchMonthlyTotal = async () => {
 
-  try {
+        try {
 
-    const response = await API.get('/expenses/analytics');
+            const userData = await AsyncStorage.getItem('user');
 
-    setMonthlyTotal(response.data.monthlyTotal);
+            const parsedUser = JSON.parse(userData);
 
-  } catch (error) {
-    console.log(error);
-  }
-};
+            const userId = parsedUser.userId;
 
+            const response = await API.get(
+                `/expenses/${userId}`
+            );
+
+            console.log('EXPENSE RESPONSE:', response.data);
+
+            const total = response.data.reduce(
+                (sum, item) => sum + Number(item.amount || 0),
+                0
+            );
+
+            setMonthlyTotal(total);
+
+        } catch (error) {
+
+            console.log(
+                'DASHBOARD ERROR:',
+                error.response?.data || error.message
+            );
+        }
+    };
     return (
 
-        <View style={styles.container}>
+        <View style={styles.mainContainer}>
 
-            <Text style={styles.heading}>
-                SpendSense Dashboard
-            </Text>
-
-            <View style={styles.card}>
-
-                <Text style={styles.amount}>
-                    ₹ {monthlyTotal}
-                </Text>
-
-                <Text>Total Monthly Spending</Text>
-
-            </View>
-
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() =>
-                    navigation.navigate('AddExpense')
-                }
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
             >
 
-                <Text style={styles.buttonText}>
-                    Add Expense
+                <Text style={styles.welcome}>
+                    Welcome Back , {userName} 👋
                 </Text>
 
-            </TouchableOpacity>
+                <Text style={styles.heading}>
+                    SpendSense
+                </Text>
+
+                <View style={styles.card}>
+
+                    <Text style={styles.cardTitle}>
+                        Monthly Spending
+                    </Text>
+
+                    <Text style={styles.amount}>
+                        ₹ {monthlyTotal}
+                    </Text>
+
+                    <Text style={styles.subtitle}>
+                        Track your expenses smartly
+                    </Text>
+
+                </View>
+
+                <PrimaryButton
+                    title="➕ Add Expense"
+                    onPress={() => navigation.navigate('AddExpense')}
+                />
+
+                <PrimaryButton
+                    title="📋 View Expenses"
+                    onPress={() => navigation.navigate('Expenses')}
+                />
+
+                <PrimaryButton
+                    title="📊 Analytics"
+                    onPress={() => navigation.navigate('Analytics')}
+                />
+
+            </ScrollView>
 
             <TouchableOpacity
-                style={styles.button}
-                onPress={() =>
-                    navigation.navigate('Expenses')
-                }
+                style={styles.fab}
+                onPress={() => navigation.navigate('AddExpense')}
+                activeOpacity={0.8}
             >
-
-                <Text style={styles.buttonText}>
-                    View Expenses
-                </Text>
-
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() =>
-                    navigation.navigate('Analytics')
-                }
-            >
-
-                <Text style={styles.buttonText}>
-                    View Analytics
-                </Text>
-
+                <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>
 
         </View>
@@ -94,42 +139,106 @@ export default function DashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
 
+    mainContainer: {
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
+
     container: {
         flex: 1,
+    },
+
+    content: {
         padding: 20,
-        justifyContent: 'center'
+        paddingBottom: 120,
+    },
+
+    welcome: {
+        marginTop: 10,
+        color: Colors.lightText,
+        fontSize: 16,
     },
 
     heading: {
-        fontSize: 28,
+        fontSize: 34,
         fontWeight: 'bold',
-        marginBottom: 30,
-        textAlign: 'center'
+        color: Colors.text,
+        marginBottom: 25,
     },
 
     card: {
-        backgroundColor: '#f3f3f3',
-        padding: 25,
-        borderRadius: 15,
+        backgroundColor: Colors.primary,
+
+        padding: 30,
+        borderRadius: 30,
+
         marginBottom: 30,
-        alignItems: 'center'
+
+        shadowColor: '#7C3AED',
+        shadowOpacity: 0.25,
+
+        shadowOffset: {
+            width: 0,
+            height: 10,
+        },
+
+        shadowRadius: 15,
+
+        elevation: 10,
+    },
+
+    cardTitle: {
+        color: '#fff',
+        fontSize: 18,
     },
 
     amount: {
-        fontSize: 35,
-        fontWeight: 'bold'
-    },
-
-    button: {
-        backgroundColor: '#000',
-        padding: 15,
-        borderRadius: 12,
-        marginBottom: 15
-    },
-
-    buttonText: {
         color: '#fff',
-        textAlign: 'center',
-        fontWeight: 'bold'
-    }
+        fontSize: 42,
+        fontWeight: 'bold',
+        marginVertical: 12,
+    },
+
+    subtitle: {
+        color: '#EDE9FE',
+        fontSize: 14,
+    },
+
+    fab: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+
+        width: 68,
+        height: 68,
+
+        borderRadius: 40,
+
+        backgroundColor: Colors.darkPurple,
+
+        borderWidth: 4,
+        borderColor: '#fff',
+
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        shadowRadius: 10,
+
+        elevation: 12,
+    },
+
+    fabText: {
+        color: '#fff',
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginTop: -2,
+    },
 });

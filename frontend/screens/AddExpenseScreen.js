@@ -21,8 +21,13 @@ export default function AddExpenseScreen() {
 
         try {
 
-            const token = await AsyncStorage.getItem('token');
-            const userId = await AsyncStorage.getItem('userId');
+            const storedUser =
+                await AsyncStorage.getItem('user');
+
+            const user = JSON.parse(storedUser);
+
+            const token = user.token;
+            const userId = user.userId;
 
             const response = await API.post(
                 `/expenses/${userId}`,
@@ -30,8 +35,9 @@ export default function AddExpenseScreen() {
                     title: title.trim(),
                     amount: Number(amount),
                     category: category.trim(),
-                    date: new Date().toISOString().split('T')[0]
-                    
+                    date: new Date()
+                        .toISOString()
+                        .split('T')[0]
                 },
                 {
                     headers: {
@@ -50,12 +56,16 @@ export default function AddExpenseScreen() {
 
         } catch (error) {
 
-            console.log(error.response?.data);
-            console.log(error.message);
+            console.log(
+                'ADD EXPENSE ERROR:',
+                error.response?.data || error.message
+            );
 
             Alert.alert(
                 'Error adding expense',
-                JSON.stringify(error.response?.data || error.message)
+                JSON.stringify(
+                    error.response?.data || error.message
+                )
             );
         }
     };
@@ -97,30 +107,40 @@ export default function AddExpenseScreen() {
 }
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
+        backgroundColor: '#F5F7FB',
         padding: 20,
-        justifyContent: 'center'
+    },
+
+    heading: {
+        fontSize: 30,
+        fontWeight: 'bold',
+        marginBottom: 30,
+        color: '#111827',
     },
 
     input: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 14,
+        marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 12,
-        marginBottom: 15,
-        borderRadius: 10
+        borderColor: '#E5E7EB',
+        fontSize: 16,
     },
 
     button: {
-        backgroundColor: '#000',
-        padding: 15,
-        borderRadius: 10
+        backgroundColor: '#6C63FF',
+        padding: 18,
+        borderRadius: 14,
+        alignItems: 'center',
+        marginTop: 10,
     },
 
     buttonText: {
         color: '#fff',
-        textAlign: 'center',
-        fontWeight: 'bold'
-    }
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
 });
