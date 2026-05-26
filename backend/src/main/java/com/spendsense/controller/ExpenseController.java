@@ -9,6 +9,7 @@ import com.spendsense.repository.ExpenseRepository;
 import com.spendsense.repository.UserRepository;
 import com.spendsense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,7 @@ public class ExpenseController {
 
     @GetMapping("/{userId}")
     public List<Expense> getExpenses(@PathVariable Long userId) {
+
         return expenseRepository.findByUserId(userId);
     }
 
@@ -62,5 +64,12 @@ public class ExpenseController {
             @AuthenticationPrincipal User user
     ) {
         return expenseService.getDailyExpenses(user.getId());
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteExpense(@PathVariable Long id) {
+
+        expenseRepository.deleteById(id);
+
+        return ResponseEntity.ok("Expense deleted successfully");
     }
 }
